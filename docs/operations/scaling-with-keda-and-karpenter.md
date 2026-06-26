@@ -7,7 +7,7 @@ sidebar_label: Scaling with KEDA and Karpenter
 
 ## Overview
 
-In this workshop you'll learn about the Kubernetes Event Driven Autoscaler (aka [KEDA](https://keda.sh)), as well as the AKS [Node Auto Provisioning (NAP)](https://learn.microsoft.com/en-us/azure/aks/node-autoprovision?tabs=azure-cli)). We'll deploy a sample application, and demonstrate how KEDA allows you to scale Kubernetes workloads based on a vast list of potential scale trigger sources. We'll then learn about how Node Auto Provisioning leverages the capabilities established by the [Karpenter](https://karpenter.sh/) open source project, via the [Karpenter Provider for Azure](https://github.com/Azure/karpenter-provider-azure), to improve the node scaling behavior and flexibility of your AKS cluster.
+In this workshop you'll learn about the Kubernetes Event-driven Autoscaler (aka [KEDA](https://keda.sh)), as well as Azure Kubernetes Service (AKS) [Node Auto Provisioning (NAP)](https://learn.microsoft.com/azure/aks/node-autoprovision?tabs=azure-cli). We'll deploy a sample application, and demonstrate how KEDA allows you to scale Kubernetes workloads based on a vast list of potential scale trigger sources. We'll then learn about how Node Auto Provisioning leverages the capabilities established by the [Karpenter](https://karpenter.sh/) open source project, via the [Karpenter Provider for Azure](https://github.com/Azure/karpenter-provider-azure), to improve the node scaling behavior and flexibility of your AKS cluster.
 
 ## Objectives
 
@@ -96,7 +96,7 @@ echo "Pet Store URL: http://$(kubectl get svc store-front -n pets -o jsonpath='{
 
 ## What is KEDA?
 
-KEDA is the 'Kubernetes Event-Driven Autoscaler. Traditionally, in Kubernetes, you would manage deployment scaling with a [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) (aka HPA). HPA's are somewhat limited in their scaling triggers. The KEDA open source project was created to introduce a pluggable approach for scale triggers. This means that anyone can create a scaler and use that scaler in KEDA, and fortunately, the open source community has done just that. KEDA has [more than 50 scalers](https://keda.sh/docs/2.17/scalers/) enabled out of the box! This means that you can scale your workload based on info from MongoDB, RabbitMQ, MySQL, etc, etc.
+KEDA is the 'Kubernetes Event-Driven Autoscaler. Traditionally, in Kubernetes, you would manage deployment scaling with a [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) (aka HPA). HPA is somewhat limited in their scaling triggers. The KEDA open source project was created to introduce a pluggable approach for scale triggers. This means that anyone can create a scaler and use that scaler in KEDA, and fortunately, the open source community has done just that. KEDA has [more than 50 scalers](https://keda.sh/docs/2.17/scalers/) enabled out of the box! This means that you can scale your workload based on info from MongoDB, RabbitMQ, MySQL, etc, etc.
 
 KEDA works by watching the external triggers, identified in the scaler configuration via the ScaledObject definition, and then by driving a Horizontal Pod Autoscaler attached to the target deployment.
 
@@ -104,7 +104,7 @@ KEDA works by watching the external triggers, identified in the scaler configura
 
 ## Setup the KEDA Scaler
 
-When a customer submits an order that order is sent to the order service. This initial order creation is a pretty light weight activity, as it just creates a message in rabbitMQ for the order that needs to be processed. However, those orders will sit in the queue until a virtual worker picks them up. It makes sense for us to automatically scale the virtual worker based on the depth of the queue in RabbitMQ. 
+When a customer submits an order that order is sent to the order service. This initial order creation is a pretty light weight activity, as it just creates a message in RabbitMQ for the order that needs to be processed. However, those orders will sit in the queue until a virtual worker picks them up. It makes sense for us to automatically scale the virtual worker based on the depth of the queue in RabbitMQ. 
 
 Fortunately, KEDA provides a [scaler for RabbitMQ](https://keda.sh/docs/2.17/scalers/rabbitmq-queue/) that we can use. Let's configure a KEDA scaled object that will increase the number of virtual worker pods based on the depth of the orders queue in RabbitMQ. For this, we'll need a KEDA ScaledObject, but also the authentication configuration for that RabbitMQ instance.
 
@@ -212,7 +212,7 @@ Great! You should now be seeing the virtual worker count adjusting based on the 
 
 ## Node Auto Provisioning (NAP)/Karpenter
 
-Now that we have a good sense of how KEDA works, lets have a look at Node Auto Provisioning (NAP) and what it is.
+Now that we have a good sense of how KEDA works, let's have a look at Node Auto Provisioning (NAP) and what it is.
 
 The [Karpenter](https://karpenter.sh/) project was developed to address some limitations in traditional Kubernetes infrastructure scaling. We now know that KEDA and the Horizontal Pod Autoscaler can be used to scale deployments in Kubernetes, but what happens if you don't have enough compute capacity to run those pods? Up until this point we relied on the [Cluster Autoscaler](https://learn.microsoft.com/azure/aks/cluster-autoscaler) and its implementations for the various compute hosting providers. 
 
@@ -220,7 +220,7 @@ While the cluster autoscaler has served us well for years, it doesn't provide mu
 
 The Karpenter project introduced new mechanisms for creating node configuration definitions (NodeClasses) and node pool definitions (NodePools). These are combined with new capabilities around scheduling (ex. affinity and topology spread), provisioning best-fit compute, and Disruption (how nodes are terminated when they aren't needed).
 
-Karpenter was developed as an open-source project, allowing development of compute provider specific implementations of this open-source project, like the open-source [Karpenter Provider for Azure](https://github.com/Azure/karpenter-provider-azure) which you can host in your AKS cluster. This made it easy for AKS to offer a managed experience for Karpenter via what AKS calls 'Node Auto-Provisioning'. 
+Karpenter was developed as an open-source project, allowing development of compute provider specific implementations of this open-source project, like the open-source [Karpenter Provider for Azure](https://github.com/Azure/karpenter-provider-azure) which you can host in your AKS cluster. This made it easy for AKS to offer a managed experience for Karpenter via what AKS calls 'Node Auto Provisioning'. 
 
 ### Self-hosted Karpenter vs. managed node auto provisioning
 
@@ -244,7 +244,7 @@ NAP uses the following levers to control node provisioning:
 - AKSNodeClass CRD (policies / constraints) - Azure-specific node settings like subnet behavior, image/OS disk/kubelet configuration, etc
 - NodeOverlay CRD (optional) - used to detail custom pricing that NAP will consider in VM selection logic
 
-Instead of using the `az aks` commands with nodepools, these CRDs and specs are using to set node behavior. For more information on comparing Azure CLI commands for NAP vs cluster autoscaler settings, see our [CAS vs NAP documentation](https://learn.microsoft.com/azure/aks/migrate-from-autoscaler-to-node-auto-provisioning#cluster-autoscaler-profile-settings-vs-node-auto-provisioning-configuration-settings).
+Instead of using the `az aks` commands with node pools, these CRDs and specs are used to set node behavior. For more information on comparing Azure CLI commands for NAP vs cluster autoscaler settings, see our [CAS vs NAP documentation](https://learn.microsoft.com/azure/aks/migrate-from-autoscaler-to-node-auto-provisioning#cluster-autoscaler-profile-settings-vs-node-auto-provisioning-configuration-settings).
 
 ## Using NAP
 
@@ -297,7 +297,7 @@ kubectl describe nodepool default
 kubectl describe nodepool system-surge
 ```
 
-Let's create our own Nodepool CRD for ARM. We'll use the [weight](https://learn.microsoft.com/azure/aks/node-auto-provisioning-node-pools#node-pool-weights) parameter to give ours a higher priority than the default. You can also have a look at the [well-known labels and SKU selectors](https://learn.microsoft.com/azure/aks/node-auto-provisioning-node-pools#well-known-labels-and-sku-selectors).
+Let's create our own NodePool CRD for ARM. We'll use the [weight](https://learn.microsoft.com/azure/aks/node-auto-provisioning-node-pools#node-pool-weights) parameter to give ours a higher priority than the default. You can also have a look at the [well-known labels and SKU selectors](https://learn.microsoft.com/azure/aks/node-auto-provisioning-node-pools#well-known-labels-and-sku-selectors).
 
 ```bash
 cat <<EOF > arm-nodepool-profile.yaml
@@ -335,7 +335,7 @@ spec:
         - D
 EOF
 
-# Now apply the new arm Nodepool CRD and watch the shift
+# Now apply the new arm NodePool CRD and watch the shift
 kubectl apply -f arm-nodepool-profile.yaml 
 ```
 
@@ -409,7 +409,7 @@ spec:
         - D
 EOF
 
-# Apply the new CRD with the new NodeClass
+# Apply the updated NodePool and AKSNodeClass definitions
 kubectl apply -f arm-nodepool-profile_v2.yaml
 ```
 
@@ -436,4 +436,4 @@ In this lab we walked through using the [Kuberentes Event Driven Autoscaler](htt
 
 Next, we took a look at the Karpenter project, and the OSS Azure Provider for Karpenter, which is provided in AKS as the managed service [Node AutoProvisioning](https://learn.microsoft.com/en-us/azure/aks/node-autoprovision?tabs=azure-cli) managed add-on. We saw how you can use the default AKSNodeClass and NodePool CRD to enable autoscaling, but also how you can create your own custom Nodepool and AKSNodeClass CRD based on your own requirements, or even deploy multiple of these CRDs based on your workload needs. In our example, we wanted to run an Azure Linux pool that used ARM based nodes.
 
-Using these two tools together can give you amazing control over the was your application and your cluster handle scaling, and we only scratched the surface of the potential of these solutions!
+Using these two tools together can give you amazing control over the way your application and your cluster handle scaling, and we only scratched the surface of the potential of these solutions!
